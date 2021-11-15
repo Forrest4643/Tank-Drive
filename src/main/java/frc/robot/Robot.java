@@ -11,7 +11,9 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -38,6 +40,11 @@ public class Robot extends TimedRobot {
   private final SpeedControllerGroup rightDrive = new SpeedControllerGroup(rightFront, rightRear);
 
   public final DifferentialDrive robotDrive = new DifferentialDrive(leftDrive, rightDrive);
+
+  public JoystickButton leftBumper = new JoystickButton(controller, 4);
+
+  private boolean quickTurn;
+
 
 
 
@@ -108,14 +115,23 @@ public class Robot extends TimedRobot {
     // this line or comment it out.
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
+
     }
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    
+    if(leftBumper.get()) {
+      quickTurn = true;
+    } else {
+      quickTurn = false;
+    }
+
+    // cheesydrive
     //axis 1 = left stick y, axis 5 = right stick y
-    robotDrive.tankDrive(controller.getRawAxis(1), controller.getRawAxis(5));
+    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(5), quickTurn);
   }
 
   @Override
