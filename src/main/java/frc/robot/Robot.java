@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
@@ -76,9 +75,6 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
 
-    //axis 1 = left stick y, axis 5 = right stick y
-    robotDrive.tankDrive(controller.getRawAxis(1), controller.getRawAxis(5));
-
     CommandScheduler.getInstance().run();
   }
 
@@ -117,7 +113,10 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    //axis 1 = left stick y, axis 5 = right stick y
+    robotDrive.tankDrive(controller.getRawAxis(1), controller.getRawAxis(5));
+  }
 
   @Override
   public void testInit() {
