@@ -130,8 +130,8 @@ public class Robot extends TimedRobot {
     }
 
     // cheesydrive
-    //axis 1 = left stick y, axis 5 = right stick y
-    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(5), quickTurn);
+    //axis 1 = left stick y, axis 3 = right stick x
+    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(3), quickTurn);
   }
 
   @Override
