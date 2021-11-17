@@ -43,11 +43,8 @@ public class Robot extends TimedRobot {
 
   public JoystickButton leftBumper = new JoystickButton(controller, 4);
 
-  private boolean quickTurn;
 
-
-
-
+  
   /** 
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -123,11 +120,9 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     
-    if(leftBumper.get()) {
-      quickTurn = true;
-    } else {
-      quickTurn = false;
-    }
+    
+
+    boolean quickTurn = leftBumper.get();
 
     // cheesydrive
     //axis 1 = left stick y, axis 3 = right stick x
