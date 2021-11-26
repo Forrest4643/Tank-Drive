@@ -32,8 +32,8 @@ public class Robot extends TimedRobot {
   //defining motor names
   private final CANSparkMax leftFront = new CANSparkMax(1, MotorType.kBrushless);
   private final CANSparkMax leftRear = new CANSparkMax(2, MotorType.kBrushless);
-  private final CANSparkMax rightFront = new CANSparkMax(3, MotorType.kBrushless);
-  private final CANSparkMax rightRear = new CANSparkMax(4, MotorType.kBrushless);
+  private final CANSparkMax rightRear = new CANSparkMax(3, MotorType.kBrushless);
+  private final CANSparkMax rightFront = new CANSparkMax(4, MotorType.kBrushless);
 
   //setting speed controller groups
   private final SpeedControllerGroup leftDrive = new SpeedControllerGroup(leftFront, leftRear);
@@ -124,7 +124,7 @@ public class Robot extends TimedRobot {
 
     boolean quickTurn = leftBumper.get();
 
-    // cheesydrive
+    //cheesydrive
     //axis 1 = left stick y, axis 3 = right stick x
     robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(3), quickTurn);
   }
