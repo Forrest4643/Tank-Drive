@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
 
   public final DifferentialDrive robotDrive = new DifferentialDrive(leftDrive, rightDrive);
 
-  public JoystickButton leftBumper = new JoystickButton(controller, 4);
+  public JoystickButton leftBumper = new JoystickButton(controller, 5);
 
 
   
@@ -125,8 +125,8 @@ public class Robot extends TimedRobot {
     boolean quickTurn = leftBumper.get();
 
     //cheesydrive
-    //axis 1 = left stick y, axis 3 = right stick x
-    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(3), quickTurn);
+    //axis 1 = left stick y, axis 2 = right stick x
+    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
   }
 
   @Override
