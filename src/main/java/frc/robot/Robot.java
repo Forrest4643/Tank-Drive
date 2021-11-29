@@ -13,7 +13,9 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import com.kauailabs.navx.frc.AHRS;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -42,10 +44,13 @@ public class Robot extends TimedRobot {
   public final DifferentialDrive robotDrive = new DifferentialDrive(leftDrive, rightDrive);
   
   //defining leftbumper
-  public JoystickButton leftBumper = new JoystickButton(controller, 5);
+  public JoystickButton leftBumper = new JoystickButton(controller, 5);  
 
-
+   //defining navx
+   AHRS ahrs;
   
+
+
   /** 
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -120,14 +125,27 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    
-    
 
     boolean quickTurn = leftBumper.get();
 
     //cheesydrive
     //axis 1 = left stick y, axis 2 = right stick x
+    //if right stick x centered
+    if (controller.getRawAxis(4) > -0.04 &&  controller.getRawAxis(4) < 0.04){
+      
+    }
+
+
     robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
+
+       //prints right stick x value
+       SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
+
+       //prints left stick y value
+       SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
+   
+       //prints Navx yaw value
+      //  SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
   }
 
   @Override
@@ -138,5 +156,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+ 
+  
+  }
 }
