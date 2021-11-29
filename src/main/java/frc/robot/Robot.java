@@ -43,10 +43,12 @@ public class Robot extends TimedRobot {
   public final DifferentialDrive robotDrive = new DifferentialDrive(leftDrive, rightDrive);
   
   //defining leftbumper
-  public JoystickButton leftBumper = new JoystickButton(controller, 5);  
+  public final JoystickButton leftBumper = new JoystickButton(controller, 5);  
+
+  public final double stickDB = 0.04;
 
   //constants for drivetrain PID
-  public double drive_kP = 0.03;
+  public final double drive_kP = 0.03;
 
    //defining navx
    AHRS ahrs;
@@ -130,20 +132,18 @@ public class Robot extends TimedRobot {
 
     double headingAngle = ahrs.getYaw();
 
-    //while right stick x centered
-    while (controller.getRawAxis(4) > -0.04 &&  controller.getRawAxis(4) < 0.04){
+    //while right stick x is within deadband
+    while (controller.getRawAxis(4) > -stickDB &&  controller.getRawAxis(4) < stickDB){
 
       //This is a basic P loop that keeps the robot driving straight using the navx
-      double error = ahrs.getYaw() - headingAngle;
+      double error = headingAngle - ahrs.getYaw();
       double turn_power = drive_kP * error;
       robotDrive.arcadeDrive(controller.getRawAxis(1), turn_power);
     }
 
-    //bool for curvaturedrive
     boolean quickTurn = leftBumper.get();
 
-    //cheesydrive
-    //axis 1 = left stick y, axis 2 = right stick x
+    //axis 1 = left stick y, axis 4 = right stick x
     robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
 
 
