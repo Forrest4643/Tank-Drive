@@ -134,8 +134,10 @@ public class Robot extends TimedRobot {
 
     //while right stick x is within deadband & left stick y outside deadband
     while (
+    //x deadband
     controller.getRawAxis(4) > -stickDB &&  
     controller.getRawAxis(4) < stickDB && 
+    //y deadband
     controller.getRawAxis(1) < -stickDB && 
     controller.getRawAxis(1) > stickDB){
 
@@ -143,7 +145,7 @@ public class Robot extends TimedRobot {
       double error = headingAngle - ahrs.getYaw();
       double turn_power = drive_kP * error;
       robotDrive.arcadeDrive(controller.getRawAxis(1), turn_power);
-      
+
     }
 
     boolean quickTurn = leftBumper.get();
