@@ -128,24 +128,14 @@ public class Robot extends TimedRobot {
 
     boolean quickTurn = leftBumper.get();
 
-    //cheesydrive
-    //axis 1 = left stick y, axis 2 = right stick x
-    //if right stick x centered
-    if (controller.getRawAxis(4) > -0.04 &&  controller.getRawAxis(4) < 0.04){
-      
-    }
+     //axis 1 = left stick y, axis 2 = right stick x
+     robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
 
+     //prints right stick x value
+     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
 
-    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
-
-       //prints right stick x value
-       SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
-
-       //prints left stick y value
-       SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
-   
-       //prints Navx yaw value
-      //  SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
+     //prints left stick y value
+     SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
   }
 
   @Override
