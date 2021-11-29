@@ -139,7 +139,7 @@ public class Robot extends TimedRobot {
     controller.getRawAxis(4) < stickDB && 
     //y deadband
     controller.getRawAxis(1) < -stickDB && 
-    controller.getRawAxis(1) > stickDB){
+    controller.getRawAxis(1) > stickDB) {
 
       //This is a basic P loop that keeps the robot driving straight using the navx
       double error = headingAngle - ahrs.getYaw();
