@@ -12,10 +12,9 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive; 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import com.kauailabs.navx.frc.AHRS;
+import com.kauailabs.navx.frc.AHRS; //navx
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -31,7 +30,7 @@ public class Robot extends TimedRobot {
   //com port 1 = xbox controller 
   private final XboxController controller = new XboxController(1);
 
-  //defining motor names
+  //defining motor can ids
   private final CANSparkMax leftFront = new CANSparkMax(1, MotorType.kBrushless);
   private final CANSparkMax leftRear = new CANSparkMax(2, MotorType.kBrushless);
   private final CANSparkMax rightRear = new CANSparkMax(3, MotorType.kBrushless);
@@ -45,6 +44,9 @@ public class Robot extends TimedRobot {
   
   //defining leftbumper
   public JoystickButton leftBumper = new JoystickButton(controller, 5);  
+
+  //constants for drivetrain PID
+  public double drive_kP = 0.03;
 
    //defining navx
    AHRS ahrs;
@@ -126,26 +128,34 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
+    double headingAngle = ahrs.getYaw();
+
+    //while right stick x centered
+    while (controller.getRawAxis(4) > -0.04 &&  controller.getRawAxis(4) < 0.04){
+
+      //This is a basic P loop that keeps the robot driving straight using the navx
+      double error = ahrs.getYaw() - headingAngle;
+      double turn_power = drive_kP * error;
+      robotDrive.arcadeDrive(controller.getRawAxis(1), turn_power);
+    }
+
+    //bool for curvaturedrive
     boolean quickTurn = leftBumper.get();
 
     //cheesydrive
     //axis 1 = left stick y, axis 2 = right stick x
-    //if right stick x centered
-    if (controller.getRawAxis(4) > -0.04 &&  controller.getRawAxis(4) < 0.04){
-      
-    }
-
-
     robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
 
-       //prints right stick x value
-       SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
 
-       //prints left stick y value
-       SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
+    //prints right stick x value
+    SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
+
+    //prints left stick y value
+    SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
    
        //prints Navx yaw value
-      //  SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
+       //ERR in driverstation
+       //SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
   }
 
   @Override
