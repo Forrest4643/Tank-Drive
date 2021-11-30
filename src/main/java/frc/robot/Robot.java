@@ -14,6 +14,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive; 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.SPI;
 import com.kauailabs.navx.frc.AHRS; //navx
 
 /**
@@ -48,11 +50,14 @@ public class Robot extends TimedRobot {
   public final double stickDB = 0.04;
 
   //constants for drivetrain PID
-  public final double drive_kP = 0.03;
+  public final double drive_kP = 0.01;
+
+  public final double contDiv = 1.25;
 
    //defining navx
    AHRS ahrs;
   
+
 
 
   /** 
@@ -63,6 +68,8 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
+
+    ahrs = new AHRS(SPI.Port.kMXP);
 
     leftFront.setInverted(false);
     leftRear.setInverted(false);
@@ -135,23 +142,20 @@ public class Robot extends TimedRobot {
     //while right stick x is within deadband & left stick y outside deadband
     while (
     //x deadband
-    controller.getRawAxis(4) > -stickDB &&  
-    controller.getRawAxis(4) < stickDB && 
+    controller.getRawAxis(4) > -stickDB && controller.getRawAxis(4) < stickDB && 
     //y deadband
-    controller.getRawAxis(1) < -stickDB && 
-    controller.getRawAxis(1) > stickDB) {
+    (controller.getRawAxis(1) < -stickDB || controller.getRawAxis(1) > stickDB)) {
 
       //This is a basic P loop that keeps the robot driving straight using the navx
       double error = headingAngle - ahrs.getYaw();
       double turn_power = drive_kP * error;
-      robotDrive.arcadeDrive(controller.getRawAxis(1), turn_power);
-
+      robotDrive.curvatureDrive(controller.getRawAxis(1), turn_power, false);
     }
 
     boolean quickTurn = leftBumper.get();
 
     //axis 1 = left stick y, axis 4 = right stick x
-    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4), quickTurn);
+    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4) / contDiv, quickTurn);
 
 
     //prints right stick x value
