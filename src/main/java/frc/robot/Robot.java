@@ -152,7 +152,7 @@ public class Robot extends TimedRobot {
 
     boolean isThrottle = (controller.getRawAxis(1) < -stickDB || controller.getRawAxis(1) > stickDB);
 
-    boolean isTurning = (controller.getRawAxis(4) < -stickDB && controller.getRawAxis(4) > stickDB);
+    boolean isTurning = (controller.getRawAxis(4) < -stickDB || controller.getRawAxis(4) > stickDB);
 
     boolean quickTurn = leftBumper.get();
 
