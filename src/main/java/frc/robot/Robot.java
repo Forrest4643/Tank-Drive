@@ -12,61 +12,61 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive; 
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import com.kauailabs.navx.frc.AHRS; //navx
 
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to each mode, as described in the TimedRobot
+ * documentation. If you change the name of this class or the package after
+ * creating this project, you must also update the build.gradle file in the
  * project
  */
 public class Robot extends TimedRobot {
+
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
 
-  //com port 1 = xbox controller 
+  // com port 1 = xbox controller
   private final XboxController controller = new XboxController(1);
 
-  //defining motor can ids
+  // defining motor can ids
   private final CANSparkMax leftFront = new CANSparkMax(1, MotorType.kBrushless);
   private final CANSparkMax leftRear = new CANSparkMax(2, MotorType.kBrushless);
   private final CANSparkMax rightRear = new CANSparkMax(3, MotorType.kBrushless);
   private final CANSparkMax rightFront = new CANSparkMax(4, MotorType.kBrushless);
 
-  //setting speed controller groups
+  // setting speed controller groups
   private final SpeedControllerGroup leftDrive = new SpeedControllerGroup(leftFront, leftRear);
   private final SpeedControllerGroup rightDrive = new SpeedControllerGroup(rightFront, rightRear);
 
   public final DifferentialDrive robotDrive = new DifferentialDrive(leftDrive, rightDrive);
-  
-  //defining leftbumper
-  public final JoystickButton leftBumper = new JoystickButton(controller, 5);  
+
+  // defining leftbumper
+  public final JoystickButton leftBumper = new JoystickButton(controller, 5);
 
   public final double stickDB = 0.04;
 
-  //constants for drivetrain PID
+  // constants for drivetrain PID
   public final double drive_kP = 0.01;
 
   public final double contDiv = 1.25;
 
-   //defining navx
-   AHRS ahrs;
-  
+  // defining navx
+  AHRS ahrs;
 
-
-
-  /** 
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
+  /**
+   * This function is run when the robot is first started up and should be used
+   * for any initialization code.
    */
   @Override
   public void robotInit() {
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+    // Instantiate our RobotContainer. This will perform all our button bindings,
+    // and put our
     // autonomous chooser on the dashboard.
 
     ahrs = new AHRS(SPI.Port.kMXP);
@@ -83,17 +83,22 @@ public class Robot extends TimedRobot {
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * This function is called every robot packet, no matter the mode. Use this for
+   * items like diagnostics that you want ran during disabled, autonomous,
+   * teleoperated and test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
-   * SmartDashboard integrated updating.
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and SmartDashboard integrated updating.
    */
   @Override
   public void robotPeriodic() {
-    // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-    // commands, running already-scheduled commands, removing finished or interrupted commands,
-    // and running subsystem periodic() methods.  This must be called from the robot's periodic
+    // Runs the Scheduler. This is responsible for polling buttons, adding
+    // newly-scheduled
+    // commands, running already-scheduled commands, removing finished or
+    // interrupted commands,
+    // and running subsystem periodic() methods. This must be called from the
+    // robot's periodic
     // block in order for anything in the Command-based framework to work.
 
     CommandScheduler.getInstance().run();
@@ -101,12 +106,17 @@ public class Robot extends TimedRobot {
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
-  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
+  /**
+   * This autonomous runs the autonomous command selected by your
+   * {@link RobotContainer} class.
+   */
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
@@ -119,7 +129,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {
@@ -133,40 +144,36 @@ public class Robot extends TimedRobot {
     }
   }
 
+  double headingAngle = ahrs.getYaw();
+
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
 
-    double headingAngle = ahrs.getYaw();
+    boolean isThrottle = (controller.getRawAxis(1) < -stickDB || controller.getRawAxis(1) > stickDB);
 
-    //while right stick x is within deadband & left stick y outside deadband
-    while (
-    //x deadband
-    controller.getRawAxis(4) > -stickDB && controller.getRawAxis(4) < stickDB && 
-    //y deadband
-    (controller.getRawAxis(1) < -stickDB || controller.getRawAxis(1) > stickDB)) {
-
-      //This is a basic P loop that keeps the robot driving straight using the navx
-      double error = headingAngle - ahrs.getYaw();
-      double turn_power = drive_kP * error;
-      robotDrive.curvatureDrive(controller.getRawAxis(1), turn_power, false);
-    }
+    boolean isTurning = (controller.getRawAxis(4) < -stickDB && controller.getRawAxis(4) > stickDB);
 
     boolean quickTurn = leftBumper.get();
 
-    //axis 1 = left stick y, axis 4 = right stick x
+    double headingAngle = ahrs.getYaw();
+
+    while (isThrottle == true && isTurning == false) {
+      // This is a basic P loop that keeps the robot driving straight using the navx
+      double error = headingAngle - ahrs.getYaw();
+      double steerAssist = drive_kP * error;
+      robotDrive.curvatureDrive(controller.getRawAxis(1), steerAssist, false);
+    }
+
+    // axis 1 = left stick y, axis 4 = right stick x
     robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4) / contDiv, quickTurn);
 
-
-    //prints right stick x value
+    // printing variables to smartdashboard for troubleshooting
     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
-
-    //prints left stick y value
     SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
-   
-       //prints Navx yaw value
-       //ERR in driverstation
-       //SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
+    SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
+    SmartDashboard.putBoolean("isTurning", isTurning);
+    SmartDashboard.putBoolean("isThrottle", isThrottle);
   }
 
   @Override
@@ -178,7 +185,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
- 
-  
+
   }
 }
