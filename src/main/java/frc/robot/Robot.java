@@ -149,8 +149,6 @@ public class Robot extends TimedRobot {
     }
   }
 
-  double headingAngle = ahrs.getYaw();
-
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
@@ -165,7 +163,7 @@ public class Robot extends TimedRobot {
         m_headingAngle = ahrs.getYaw();
     }
     // This is a basic P loop that keeps the robot driving straight using the navx
-    double error = headingAngle - ahrs.getYaw();
+    double error = m_headingAngle - ahrs.getYaw();
     double steerAssist = drive_kP * error;
     robotDrive.curvatureDrive(controller.getRawAxis(1), steerAssist, false);
     } else {
