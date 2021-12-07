@@ -15,7 +15,13 @@ import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Controller;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.PIDSource;
+import edu.wpi.first.wpilibj.SerialPort;
 import com.kauailabs.navx.frc.AHRS; //navx
 
 /**
@@ -52,7 +58,10 @@ public class Robot extends TimedRobot {
   public final double stickDB = 0.04;
 
   // constants for drivetrain PID
-  public final double drive_kP = 0.01;
+  public final double drive_kP = 0.005;
+  public final double drive_kI = 0.000;
+  public final double drive_kD = 0.000;
+  public final double drive_kF = 0.000;
 
   public final double contDiv = 1.25;
 
@@ -74,7 +83,14 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
 
-    ahrs = new AHRS(SPI.Port.kMXP);
+    try {
+      /* Communicate w/navX-MXP via the MXP SPI Bus.                                     */
+      /* Alternatively:  I2C.Port.kMXP, SerialPort.Port.kMXP or SerialPort.Port.kUSB     */
+      /* See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface/ for details. */
+      ahrs = new AHRS(SerialPort.Port.kUSB); 
+    } catch (RuntimeException ex ) {
+      DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), true);
+    }
 
     leftFront.setInverted(false);
     leftRear.setInverted(false);
@@ -147,6 +163,7 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
 
     }
+    
   }
 
   /** This function is called periodically during operator control. */
@@ -165,10 +182,10 @@ public class Robot extends TimedRobot {
     // This is a basic P loop that keeps the robot driving straight using the navx
     double error = m_headingAngle - ahrs.getYaw();
     double steerAssist = drive_kP * error;
-    robotDrive.curvatureDrive(controller.getRawAxis(1), steerAssist, false);
+    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, steerAssist, false);
     } else {
     // axis 1 = left stick y, axis 4 = right stick x
-    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4) / contDiv, leftBumper.get());
+    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, controller.getRawAxis(4) / contDiv, leftBumper.get());
     }
 
     m_prevInDriveStraight = inDriveStraight; //store prev state
@@ -177,6 +194,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
     SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
     SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
+    SmartDashboard.putBoolean("navXconnection", ahrs.isConnected());
+    SmartDashboard.putBoolean("navXisrotating", ahrs.isRotating());
     SmartDashboard.putBoolean("isTurning", isTurning);
     SmartDashboard.putBoolean("isThrottle", isThrottle);
   }
