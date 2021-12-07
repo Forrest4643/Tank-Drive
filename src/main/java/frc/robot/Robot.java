@@ -56,6 +56,11 @@ public class Robot extends TimedRobot {
 
   public final double contDiv = 1.25;
 
+  // for teleop drive straight func
+  boolean m_prevInDriveStraight;
+
+  double m_headingAngle;
+
   // defining navx
   AHRS ahrs;
 
@@ -154,19 +159,21 @@ public class Robot extends TimedRobot {
 
     boolean isTurning = (controller.getRawAxis(4) < -stickDB || controller.getRawAxis(4) > stickDB);
 
-    boolean quickTurn = leftBumper.get();
-
-    double headingAngle = ahrs.getYaw();
-
-    while (isThrottle == true && isTurning == false) {
-      // This is a basic P loop that keeps the robot driving straight using the navx
-      double error = headingAngle - ahrs.getYaw();
-      double steerAssist = drive_kP * error;
-      robotDrive.curvatureDrive(controller.getRawAxis(1), steerAssist, false);
+    boolean inDriveStraight = isThrottle && !isTurning;
+    if(inDriveStraight){
+      if(!m_prevInDriveStraight) {//init entry 
+        m_headingAngle = ahrs.getYaw();
+    }
+    // This is a basic P loop that keeps the robot driving straight using the navx
+    double error = headingAngle - ahrs.getYaw();
+    double steerAssist = drive_kP * error;
+    robotDrive.curvatureDrive(controller.getRawAxis(1), steerAssist, false);
+    } else {
+    // axis 1 = left stick y, axis 4 = right stick x
+    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4) / contDiv, leftBumper.get());
     }
 
-    // axis 1 = left stick y, axis 4 = right stick x
-    robotDrive.curvatureDrive(controller.getRawAxis(1), controller.getRawAxis(4) / contDiv, quickTurn);
+    m_prevInDriveStraight = inDriveStraight; //store prev state
 
     // printing variables to smartdashboard for troubleshooting
     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
