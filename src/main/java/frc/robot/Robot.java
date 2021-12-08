@@ -15,12 +15,6 @@ import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Controller;
-import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.PIDController;
-import edu.wpi.first.wpilibj.PIDOutput;
-import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.SerialPort;
 import com.kauailabs.navx.frc.AHRS; //navx
 
@@ -72,6 +66,16 @@ public class Robot extends TimedRobot {
 
   // defining navx
   AHRS ahrs;
+
+  public void driveStraight(){
+    //This is a basic P loop that keeps the robot driving straight using the navx
+    double error = m_headingAngle - ahrs.getYaw();
+    double integral =+ (error * 0.2); //this is probably wrong
+    double derivative = (error - m_headingAngle) / 0.2;
+    double steerAssist = drive_kP + drive_kI*integral + drive_kD * derivative;
+
+    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, steerAssist, false);
+  }
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -170,22 +174,25 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    boolean isThrottle = (controller.getRawAxis(1) < -stickDB || controller.getRawAxis(1) > stickDB);
+    boolean isThrottle = (controller.getRawAxis(1) < -stickDB 
+    || controller.getRawAxis(1) > stickDB);
 
-    boolean isTurning = (controller.getRawAxis(4) < -stickDB || controller.getRawAxis(4) > stickDB);
+    boolean isTurning = (controller.getRawAxis(4) < -stickDB 
+    || controller.getRawAxis(4) > stickDB);
 
     boolean inDriveStraight = isThrottle && !isTurning;
+
     if(inDriveStraight){
-      if(!m_prevInDriveStraight) {//init entry 
+      if(!m_prevInDriveStraight) { //stores heading angle
         m_headingAngle = ahrs.getYaw();
     }
-    // This is a basic P loop that keeps the robot driving straight using the navx
-    double error = m_headingAngle - ahrs.getYaw();
-    double steerAssist = drive_kP * error;
-    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, steerAssist, false);
+    
+    driveStraight();
+
     } else {
     // axis 1 = left stick y, axis 4 = right stick x
-    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, controller.getRawAxis(4) / contDiv, leftBumper.get());
+    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, 
+    controller.getRawAxis(4) / contDiv, leftBumper.get());
     }
 
     m_prevInDriveStraight = inDriveStraight; //store prev state
