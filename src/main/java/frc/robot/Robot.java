@@ -61,18 +61,17 @@ public class Robot extends TimedRobot {
 
   // for teleop drive straight func
   boolean m_prevInDriveStraight;
-
   double m_headingAngle;
 
   // defining navx
   AHRS ahrs;
 
-  public void driveStraight(){
-    //This is a basic P loop that keeps the robot driving straight using the navx
+  public void driveStraight() {
+    // This is a basic P loop that keeps the robot driving straight using the navx
     double error = m_headingAngle - ahrs.getYaw();
-    double integral =+ (error * 0.2); //this is probably wrong
+    double integral = +(error * 0.2); // this is probably wrong
     double derivative = (error - m_headingAngle) / 0.2;
-    double steerAssist = drive_kP + drive_kI*integral + drive_kD * derivative;
+    double steerAssist = drive_kP + drive_kI * integral + drive_kD * derivative;
 
     robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, steerAssist, false);
   }
@@ -88,11 +87,14 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
 
     try {
-      /* Communicate w/navX-MXP via the MXP SPI Bus.                                     */
-      /* Alternatively:  I2C.Port.kMXP, SerialPort.Port.kMXP or SerialPort.Port.kUSB     */
-      /* See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface/ for details. */
-      ahrs = new AHRS(SerialPort.Port.kUSB); 
-    } catch (RuntimeException ex ) {
+      /* Communicate w/navX-MXP via the MXP SPI Bus. */
+      /* Alternatively: I2C.Port.kMXP, SerialPort.Port.kMXP or SerialPort.Port.kUSB */
+      /*
+       * See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface/ for
+       * details.
+       */
+      ahrs = new AHRS(SerialPort.Port.kUSB);
+    } catch (RuntimeException ex) {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), true);
     }
 
@@ -167,35 +169,33 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
 
     }
-    
+
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
 
-    boolean isThrottle = (controller.getRawAxis(1) < -stickDB 
-    || controller.getRawAxis(1) > stickDB);
+    boolean isThrottle = (controller.getRawAxis(1) < -stickDB || controller.getRawAxis(1) > stickDB);
 
-    boolean isTurning = (controller.getRawAxis(4) < -stickDB 
-    || controller.getRawAxis(4) > stickDB);
+    boolean isTurning = (controller.getRawAxis(4) < -stickDB || controller.getRawAxis(4) > stickDB);
 
     boolean inDriveStraight = isThrottle && !isTurning;
 
-    if(inDriveStraight){
-      if(!m_prevInDriveStraight) { //stores heading angle
+    if (inDriveStraight) {
+      if (!m_prevInDriveStraight) { // stores heading angle
         m_headingAngle = ahrs.getYaw();
-    }
-    
-    driveStraight();
+      }
+
+      driveStraight();
 
     } else {
-    // axis 1 = left stick y, axis 4 = right stick x
-    robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, 
-    controller.getRawAxis(4) / contDiv, leftBumper.get());
+      // axis 1 = left stick y, axis 4 = right stick x
+      robotDrive.curvatureDrive(controller.getRawAxis(1) / contDiv, controller.getRawAxis(4) / contDiv,
+          leftBumper.get());
     }
 
-    m_prevInDriveStraight = inDriveStraight; //store prev state
+    m_prevInDriveStraight = inDriveStraight; // store prev state
 
     // printing variables to smartdashboard for troubleshooting
     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
