@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
     boolean inDriveStraight = isThrottle && !isTurning;
 
     if (inDriveStraight) {
-      if (!m_prevInDriveStraight) { // stores heading angle
+      if (!m_prevInDriveStraight) { // stores heading angle & resets integral and derivative
         m_headingAngle = gyro;
         m_integral = 0;
         m_derivative = 0;
@@ -84,8 +84,8 @@ public class Robot extends TimedRobot {
 
       double error = m_headingAngle - gyro;
       m_integral =+ (error * 0.2);
-      m_derivative = (error - m_headingAngle) / 0.2;
-      double steerAssist = drive_kP * error + drive_kI * m_integral * m_integral + drive_kD * m_derivative;
+      //m_derivative = (error - m_headingAngle) / 0.2;
+      double steerAssist = (drive_kP * error) + (drive_kI * m_integral); //+ (drive_kD * m_derivative);
   
       robotDrive.curvatureDrive(throttle, steerAssist, false);
 
