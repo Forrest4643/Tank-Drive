@@ -52,17 +52,19 @@ public class Robot extends TimedRobot {
   public final double stickDB = 0.04;
 
   // constants for drivetrain PID
-  public final double drive_kP = 0.005;
+  public final double drive_kP = 0.01;
   public final double drive_kI = 0.000;
   public final double drive_kD = 0.000;
   public final double drive_kF = 0.000;
 
+  // drive stick divider
   public final double contDiv = 1.25;
 
   // for teleop drive straight func
   boolean m_prevInDriveStraight;
   double m_headingAngle;
   double m_integral, m_derivative;
+  double m_prevError;
 
   // defining navx
   AHRS ahrs;
@@ -80,20 +82,18 @@ public class Robot extends TimedRobot {
         m_headingAngle = gyro;
         m_integral = 0;
         m_derivative = 0;
+        m_prevError = 0;
       }
-
       double error = m_headingAngle - gyro;
-      m_integral =+ (error * 0.2);
-      //m_derivative = (error - m_headingAngle) / 0.2;
-      double steerAssist = (drive_kP * error) + (drive_kI * m_integral); //+ (drive_kD * m_derivative);
-  
+      m_integral = + (error * 0.2);
+      m_derivative = (error - m_prevError) / 0.2;
+      double steerAssist = (drive_kP * error) + (drive_kI * m_integral) + (drive_kD * m_derivative);
+      m_prevError = m_headingAngle - gyro;
       robotDrive.curvatureDrive(throttle, steerAssist, false);
-
     } else {
       // axis 1 = left stick y, axis 4 = right stick x
       robotDrive.curvatureDrive(throttle, steering / contDiv, quickTurn);
     }
-
     m_prevInDriveStraight = inDriveStraight; // store prev state
   }
 
@@ -197,7 +197,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-  straightCheese(controller.getRawAxis(1), controller.getRawAxis(4), leftBumper.get(), ahrs.getYaw());    
+    straightCheese(controller.getRawAxis(1), controller.getRawAxis(4), leftBumper.get(), ahrs.getYaw());
 
     // printing variables to smartdashboard for troubleshooting
     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
@@ -205,7 +205,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
     SmartDashboard.putBoolean("navXconnection", ahrs.isConnected());
     SmartDashboard.putBoolean("navXisrotating", ahrs.isRotating());
-    
+
   }
 
   @Override
