@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import java.util.Calendar;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -49,6 +50,9 @@ public class Robot extends TimedRobot {
   // defining leftbumper
   public final JoystickButton leftBumper = new JoystickButton(controller, 5);
 
+  // calendar instance for timer
+  public Calendar calendar = Calendar.getInstance();
+
   public final double stickDB = 0.04;
 
   // constants for drivetrain PID
@@ -56,6 +60,7 @@ public class Robot extends TimedRobot {
   public final double drive_kI = 0.000;
   public final double drive_kD = 0.000;
   public final double drive_kF = 0.000;
+  public final long hookDelay = 100;
 
   // drive stick divider
   public final double contDiv = 1.25;
@@ -65,6 +70,9 @@ public class Robot extends TimedRobot {
   double m_headingAngle;
   double m_integral, m_derivative;
   double m_prevError;
+  long m_startTime;
+  long m_timer;
+  boolean m_timerStarted;
 
   // defining navx
   AHRS ahrs;
@@ -77,24 +85,42 @@ public class Robot extends TimedRobot {
 
     boolean inDriveStraight = isThrottle && !isTurning;
 
-    if (inDriveStraight) {
+    // starts a timer
+    if (inDriveStraight && !m_timerStarted) {
+      m_startTime = calendar.getTimeInMillis();
+      m_timerStarted = true;
+    }
+
+    // compares current vs. time started
+    long timer = calendar.getTimeInMillis() - m_startTime;
+
+    // after delay period, start drive straight
+    if (inDriveStraight && timer >= hookDelay) {
       if (!m_prevInDriveStraight) { // stores heading angle & resets integral and derivative
         m_headingAngle = gyro;
-        m_integral = 0;
         m_derivative = 0;
-        m_prevError = 0;
+        m_integral = 0;
       }
+      // varibles for PID
       double error = m_headingAngle - gyro;
-      m_integral = + (error * 0.2);
-      m_derivative = (error - m_prevError) / 0.2;
+      m_integral = +(error * 0.2);
+      // calculation of PID
       double steerAssist = (drive_kP * error) + (drive_kI * m_integral) + (drive_kD * m_derivative);
+      // variables for PID
       m_prevError = m_headingAngle - gyro;
+      m_derivative = (error - m_prevError) / 0.2;
+
       robotDrive.curvatureDrive(throttle, steerAssist, false);
+
     } else {
       // axis 1 = left stick y, axis 4 = right stick x
       robotDrive.curvatureDrive(throttle, steering / contDiv, quickTurn);
+      // resets timer
+      m_timerStarted = false;
+
     }
-    m_prevInDriveStraight = inDriveStraight; // store prev state
+    m_prevInDriveStraight = inDriveStraight; // restore prev state
+
   }
 
   /**
