@@ -59,7 +59,7 @@ public class Robot extends TimedRobot {
   public final double drive_kP = 0.01;
   public final double drive_kI = 0.000;
   public final double drive_kD = 0.000;
-  public final double PIDerror = .5;
+  public final double drive_error = .5;
   public final double drive_kF = 0.000;
   public final long hookDelay = 100;
 
@@ -105,7 +105,7 @@ public class Robot extends TimedRobot {
       m_integral = +(error * 0.2);
 
       // resets integral when target angle is reached so prolonged iteration doesn't cause the system to overshoot
-      if (error < m_headingAngle + PIDerror || error > m_headingAngle - PIDerror) {
+      if (error < m_headingAngle + drive_error || error > m_headingAngle - drive_error) {
         m_integral = 0;
       }
 
