@@ -60,7 +60,6 @@ public class Robot extends TimedRobot {
   public final double drive_kI = 0.000;
   public final double drive_kD = 0.000;
   public final double drive_error = .5;
-  public final double drive_kF = 0.000;
   public final long hookDelay = 100;
 
   // drive stick divider
