@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SerialPort;
-import com.kauailabs.navx.frc.AHRS; //navx
+import com.kauailabs.navx.frc.AHRS;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -59,6 +59,7 @@ public class Robot extends TimedRobot {
   public final double drive_kP = 0.01;
   public final double drive_kI = 0.000;
   public final double drive_kD = 0.000;
+  public final double PIDerror = .5;
   public final double drive_kF = 0.000;
   public final long hookDelay = 100;
 
@@ -67,11 +68,9 @@ public class Robot extends TimedRobot {
 
   // for teleop drive straight func
   boolean m_prevInDriveStraight;
-  double m_headingAngle;
   double m_integral, m_derivative;
-  double m_prevError;
+  double m_headingAngle, m_prevError;
   long m_startTime;
-  long m_timer;
   boolean m_timerStarted;
 
   // defining navx
@@ -104,11 +103,20 @@ public class Robot extends TimedRobot {
       // varibles for PID
       double error = m_headingAngle - gyro;
       m_integral = +(error * 0.2);
+
+      // resets integral when target angle is reached so prolonged iteration doesn't cause the system to overshoot
+      if (error < m_headingAngle + PIDerror || error > m_headingAngle - PIDerror) {
+        m_integral = 0;
+      }
+
       // calculation of PID
       double steerAssist = (drive_kP * error) + (drive_kI * m_integral) + (drive_kD * m_derivative);
+
       // variables for PID
       m_prevError = m_headingAngle - gyro;
       m_derivative = (error - m_prevError) / 0.2;
+
+      
 
       robotDrive.curvatureDrive(throttle, steerAssist, false);
 
