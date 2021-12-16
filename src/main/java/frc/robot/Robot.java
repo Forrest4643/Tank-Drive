@@ -67,11 +67,9 @@ public class Robot extends TimedRobot {
   public final double contDiv = 1.25;
 
   // for teleop drive straight func
-  boolean m_prevInDriveStraight;
-  double m_integral, m_derivative;
-  double m_headingAngle, m_prevError;
+  double m_integral, m_derivative, m_headingAngle, m_prevError;
+  boolean m_timerStarted, m_prevInDriveStraight;
   long m_startTime;
-  boolean m_timerStarted;
 
   // defining navx
   AHRS ahrs;
