@@ -120,11 +120,12 @@ public class Robot extends TimedRobot {
     } else {
       // axis 1 = left stick y, axis 4 = right stick x
       robotDrive.curvatureDrive(throttle, steering / contDiv, quickTurn);
-      // resets timer
-      m_timerStarted = false;
 
     }
+
     m_prevInDriveStraight = inDriveStraight; // restore prev state
+    m_timerStarted = false; // resets timer
+
 
   }
 
