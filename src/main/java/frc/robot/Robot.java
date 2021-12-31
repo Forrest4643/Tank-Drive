@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SerialPort;
+
+import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 import com.kauailabs.navx.frc.AHRS;
 
 /**
@@ -33,7 +35,7 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
 
   // com port 1 = xbox controller
-  private final XboxController controller = new XboxController(1);
+  private final XboxController controller = new XboxController(0); //change to 1
 
   // defining motor can ids
   private final CANSparkMax leftFront = new CANSparkMax(1, MotorType.kBrushless);
@@ -57,14 +59,16 @@ public class Robot extends TimedRobot {
   public final double drive_kI = 0.0072;
   public final double drive_kD = 0.000;
   public final double drive_error = .9;
-  public final long hookDelay = 100;
+
+  //for hooking
+  public final double hook_multiplier = 500;
 
   // drive stick divider
   public final double contDiv = 1.25;
 
   // for teleop drive straight func
   double m_integral, m_derivative, m_headingAngle, m_prevError;
-  boolean m_timerStarted, m_prevInDriveStraight;
+  boolean m_timerStarted, m_driveStraightInit;
   long m_startTime;
 
   // defining navx
@@ -72,25 +76,19 @@ public class Robot extends TimedRobot {
 
   public void straightCheese(double throttle, double steering, boolean quickTurn, double gyro) {
 
-    // printing variables to smartdashboard for troubleshooting
-    SmartDashboard.putNumber("Headingangle", m_headingAngle);
-    SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
-    SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
-    SmartDashboard.putNumber("navX yaw", gyro);
-    SmartDashboard.putBoolean("navXconnection", ahrs.isConnected());
-    SmartDashboard.putBoolean("navXisrotating", ahrs.isRotating());
-
     boolean isThrottle = throttle < -stickDB || throttle > stickDB;
 
     boolean isTurning = steering < -stickDB || steering > stickDB;
 
-    boolean inDriveStraight = isThrottle && !isTurning;
+    boolean sticksCentered = isThrottle && !isTurning;
+
+    double hook_delay = (Math.abs(leftFront.getBusVoltage()) + Math.abs(rightFront.getBusVoltage())  ) * hook_multiplier;
 
     // calendar instance for timer
     Calendar calendar = Calendar.getInstance();
 
     // starts a timer
-    if (inDriveStraight && !m_timerStarted) {
+    if (sticksCentered && !m_timerStarted) {
       m_startTime = calendar.getTimeInMillis();
       m_timerStarted = true;
     }
@@ -102,11 +100,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("startTime", m_startTime);
     SmartDashboard.putNumber("timer", timer);
 
-    boolean drivingStraight = inDriveStraight && (timer > hookDelay);
+    boolean drivingStraight = sticksCentered && (timer > hook_delay);
 
     // after delay period, start drive straight
     if (drivingStraight) {
-      if (!m_prevInDriveStraight) { // stores heading angle & resets integral and derivative
+      if (!m_driveStraightInit) { // stores heading angle & resets integral and derivative
         m_headingAngle = gyro;
         m_derivative = 0;
         m_integral = 0;
@@ -136,12 +134,16 @@ public class Robot extends TimedRobot {
 
     }
 
-    m_prevInDriveStraight = drivingStraight; // restore prev state
+    m_driveStraightInit = drivingStraight; // restore prev state
 
-    m_timerStarted = inDriveStraight; // resets timer
+    m_timerStarted = sticksCentered; // resets timer
 
-
-
+    // printing variables to smartdashboard for troubleshooting
+    SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
+    SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
+    SmartDashboard.putNumber("headingangle", m_headingAngle);
+    SmartDashboard.putNumber("gyro_x", gyro);
+    SmartDashboard.putNumber("hook_delay", hook_delay);
   }
 
   /**
@@ -245,6 +247,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     straightCheese(controller.getRawAxis(1), controller.getRawAxis(4), leftBumper.get(), ahrs.getYaw());
+ 
 
   }
 
