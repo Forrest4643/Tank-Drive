@@ -50,16 +50,13 @@ public class Robot extends TimedRobot {
   // defining leftbumper
   public final JoystickButton leftBumper = new JoystickButton(controller, 5);
 
-  // calendar instance for timer
-  public Calendar calendar = Calendar.getInstance();
-
   public final double stickDB = 0.04;
 
   // constants for drivetrain PID
   public final double drive_kP = 0.01;
-  public final double drive_kI = 0.000;
+  public final double drive_kI = 0.0072;
   public final double drive_kD = 0.000;
-  public final double drive_error = .5;
+  public final double drive_error = .9;
   public final long hookDelay = 100;
 
   // drive stick divider
@@ -75,11 +72,22 @@ public class Robot extends TimedRobot {
 
   public void straightCheese(double throttle, double steering, boolean quickTurn, double gyro) {
 
+    // printing variables to smartdashboard for troubleshooting
+    SmartDashboard.putNumber("Headingangle", m_headingAngle);
+    SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
+    SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
+    SmartDashboard.putNumber("navX yaw", gyro);
+    SmartDashboard.putBoolean("navXconnection", ahrs.isConnected());
+    SmartDashboard.putBoolean("navXisrotating", ahrs.isRotating());
+
     boolean isThrottle = throttle < -stickDB || throttle > stickDB;
 
     boolean isTurning = steering < -stickDB || steering > stickDB;
 
     boolean inDriveStraight = isThrottle && !isTurning;
+
+    // calendar instance for timer
+    Calendar calendar = Calendar.getInstance();
 
     // starts a timer
     if (inDriveStraight && !m_timerStarted) {
@@ -90,8 +98,14 @@ public class Robot extends TimedRobot {
     // compares current vs. time started
     long timer = calendar.getTimeInMillis() - m_startTime;
 
+    SmartDashboard.putNumber("time", calendar.getTimeInMillis());
+    SmartDashboard.putNumber("startTime", m_startTime);
+    SmartDashboard.putNumber("timer", timer);
+
+    boolean drivingStraight = inDriveStraight && (timer > hookDelay);
+
     // after delay period, start drive straight
-    if (inDriveStraight && timer >= hookDelay) {
+    if (drivingStraight) {
       if (!m_prevInDriveStraight) { // stores heading angle & resets integral and derivative
         m_headingAngle = gyro;
         m_derivative = 0;
@@ -101,7 +115,8 @@ public class Robot extends TimedRobot {
       double error = m_headingAngle - gyro;
       m_integral = +(error * 0.2);
 
-      // resets integral when target angle is reached so prolonged iteration doesn't cause the system to overshoot
+      // resets integral when target angle is reached so prolonged iteration doesn't
+      // cause the system to overshoot
       if (error < m_headingAngle + drive_error || error > m_headingAngle - drive_error) {
         m_integral = 0;
       }
@@ -113,8 +128,6 @@ public class Robot extends TimedRobot {
       m_prevError = m_headingAngle - gyro;
       m_derivative = (error - m_prevError) / 0.2;
 
-      
-
       robotDrive.curvatureDrive(throttle, steerAssist, false);
 
     } else {
@@ -123,8 +136,10 @@ public class Robot extends TimedRobot {
 
     }
 
-    m_prevInDriveStraight = inDriveStraight; // restore prev state
-    m_timerStarted = false; // resets timer
+    m_prevInDriveStraight = drivingStraight; // restore prev state
+
+    m_timerStarted = inDriveStraight; // resets timer
+
 
 
   }
@@ -230,13 +245,6 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     straightCheese(controller.getRawAxis(1), controller.getRawAxis(4), leftBumper.get(), ahrs.getYaw());
-
-    // printing variables to smartdashboard for troubleshooting
-    SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
-    SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
-    SmartDashboard.putNumber("navX yaw", ahrs.getYaw());
-    SmartDashboard.putBoolean("navXconnection", ahrs.isConnected());
-    SmartDashboard.putBoolean("navXisrotating", ahrs.isRotating());
 
   }
 
