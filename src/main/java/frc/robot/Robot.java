@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.EncoderType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
@@ -82,7 +83,7 @@ public class Robot extends TimedRobot {
 
     boolean sticksCentered = isThrottle && !isTurning;
 
-    double hook_delay = (Math.abs(leftFront.getBusVoltage()) + Math.abs(rightFront.getBusVoltage())  ) * hook_multiplier;
+    //double hook_delay = (Math.abs(abs left speed abs left speed) * hook_multiplier;
 
     // calendar instance for timer
     Calendar calendar = Calendar.getInstance();
