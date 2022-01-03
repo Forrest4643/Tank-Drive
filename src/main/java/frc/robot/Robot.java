@@ -8,8 +8,8 @@ import java.util.Calendar;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.EncoderType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.XboxController;
@@ -18,8 +18,6 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SerialPort;
-
-import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 import com.kauailabs.navx.frc.AHRS;
 
 /**
@@ -44,6 +42,9 @@ public class Robot extends TimedRobot {
   private final CANSparkMax rightRear = new CANSparkMax(3, MotorType.kBrushless);
   private final CANSparkMax rightFront = new CANSparkMax(4, MotorType.kBrushless);
 
+  private CANEncoder leftDriveEncoder, rightDriveEncoder;
+
+
   // setting speed controller groups
   private final SpeedControllerGroup leftDrive = new SpeedControllerGroup(leftFront, leftRear);
   private final SpeedControllerGroup rightDrive = new SpeedControllerGroup(rightFront, rightRear);
@@ -62,13 +63,13 @@ public class Robot extends TimedRobot {
   public final double drive_error = .9;
 
   //for hooking
-  public final double hook_multiplier = 500;
+  public final double hook_multiplier = 0.5;
 
   // drive stick divider
   public final double contDiv = 1.25;
 
   // for teleop drive straight func
-  double m_integral, m_derivative, m_headingAngle, m_prevError;
+  double m_integral, m_derivative, m_headingAngle, m_prevError, m_leftDriveSpeed, m_rightDriveSpeed;
   boolean m_timerStarted, m_driveStraightInit;
   long m_startTime;
 
@@ -83,7 +84,10 @@ public class Robot extends TimedRobot {
 
     boolean sticksCentered = isThrottle && !isTurning;
 
-    //double hook_delay = (Math.abs(abs left speed abs left speed) * hook_multiplier;
+    //hookDelay is the delay before the robot stores an angle and maintains said angle.
+    //This math sets the hookdelay to be proportional to the difference in speed between the left and right motors. 
+    //This should help compensate for the time it takes the robot to stop turning.
+    double hookDelay = Math.abs(m_leftDriveSpeed - m_leftDriveSpeed) * hook_multiplier;
 
     // calendar instance for timer
     Calendar calendar = Calendar.getInstance();
@@ -101,7 +105,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("startTime", m_startTime);
     SmartDashboard.putNumber("timer", timer);
 
-    boolean drivingStraight = sticksCentered && (timer > hook_delay);
+    boolean drivingStraight = sticksCentered && (timer > hookDelay);
 
     // after delay period, start drive straight
     if (drivingStraight) {
@@ -144,7 +148,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("LS_Y", controller.getRawAxis(1));
     SmartDashboard.putNumber("headingangle", m_headingAngle);
     SmartDashboard.putNumber("gyro_x", gyro);
-    SmartDashboard.putNumber("hook_delay", hook_delay);
+    SmartDashboard.putNumber("hookDelay", hookDelay);
   }
 
   /**
@@ -177,6 +181,9 @@ public class Robot extends TimedRobot {
     leftDrive.setInverted(false);
     rightDrive.setInverted(false);
 
+    leftDriveEncoder = leftFront.getEncoder();
+    rightDriveEncoder = rightFront.getEncoder();
+
     m_robotContainer = new RobotContainer();
   }
 
@@ -198,6 +205,11 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods. This must be called from the
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
+
+    m_leftDriveSpeed = leftDriveEncoder.getVelocity();
+    m_rightDriveSpeed = rightDriveEncoder.getVelocity();
+
+
 
     CommandScheduler.getInstance().run();
   }
