@@ -34,7 +34,7 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
 
   // com port 1 = xbox controller
-  private final XboxController controller = new XboxController(0); //change to 1
+  private final XboxController controller = new XboxController(1); 
 
   // defining motor can ids
   private final CANSparkMax leftFront = new CANSparkMax(1, MotorType.kBrushless);
@@ -43,7 +43,6 @@ public class Robot extends TimedRobot {
   private final CANSparkMax rightFront = new CANSparkMax(4, MotorType.kBrushless);
 
   private CANEncoder leftDriveEncoder, rightDriveEncoder;
-
 
   // setting speed controller groups
   private final SpeedControllerGroup leftDrive = new SpeedControllerGroup(leftFront, leftRear);
@@ -62,7 +61,7 @@ public class Robot extends TimedRobot {
   public final double drive_kD = 0.000;
   public final double drive_error = .9;
 
-  //for hooking
+  // for hooking
   public final double hook_multiplier = 0.5;
 
   // drive stick divider
@@ -84,9 +83,11 @@ public class Robot extends TimedRobot {
 
     boolean sticksCentered = isThrottle && !isTurning;
 
-    //hookDelay is the delay before the robot stores an angle and maintains said angle.
-    //This math sets the hookdelay to be proportional to the difference in speed between the left and right motors. 
-    //This should help compensate for the time it takes the robot to stop turning.
+    // hookDelay is the delay before the robot stores an angle and maintains said
+    // angle.
+    // This math sets the hookdelay to be proportional to the difference in speed
+    // between the left and right motors.
+    // This should help compensate for the time it takes the robot to stop turning.
     double hookDelay = Math.abs(m_leftDriveSpeed - m_leftDriveSpeed) * hook_multiplier;
 
     // calendar instance for timer
@@ -141,7 +142,7 @@ public class Robot extends TimedRobot {
 
     m_driveStraightInit = drivingStraight; // restore prev state
 
-    m_timerStarted = sticksCentered; // resets timer
+    m_timerStarted = sticksCentered; // resets timer when sticks straightened
 
     // printing variables to smartdashboard for troubleshooting
     SmartDashboard.putNumber("RS_X", controller.getRawAxis(4));
@@ -209,8 +210,6 @@ public class Robot extends TimedRobot {
     m_leftDriveSpeed = leftDriveEncoder.getVelocity();
     m_rightDriveSpeed = rightDriveEncoder.getVelocity();
 
-
-
     CommandScheduler.getInstance().run();
   }
 
@@ -260,7 +259,6 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     straightCheese(controller.getRawAxis(1), controller.getRawAxis(4), leftBumper.get(), ahrs.getYaw());
- 
 
   }
 
